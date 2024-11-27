@@ -9,7 +9,6 @@ Jogo feito em C para a matéria de sistemas operacionais do curso de sistemas de
 - [Como Jogar](#como-jogar)
 - [Requisitos](#requisitos)
 - [Instalação](#instalacao)
-- [Autor](#autor)
 
 ---
 
@@ -58,16 +57,5 @@ Siga as etapas para compilar e executar o jogo:
    ```bash
    ./jogo_dino
    ```
-
-
----
-
-<a id="autor"></a>
-## 👤 Autor
-
-- Davi Vitorino
-- [davitorino26@gmail.com](mailto:davitorino26@gmail.com)
-- [**GitHub**](https://github.com/davsire)
-- [**LinkedIn**](https://www.linkedin.com/in/davitorino/)
 
 ---
