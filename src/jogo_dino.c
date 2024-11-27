@@ -5,18 +5,20 @@
 #include <ncurses.h>
 #include <pthread.h>
 #include "jogo_dino.h"
+#include "missel.h"
 
 #define MAX_DINOS 5
 #define ALTURA_JANELA 40
 #define LARGURA_JANELA 120
 
-const int max_vida_dino_por_dificuldade[3] = {3, 4, 5};
-const int max_misseis_por_dificuldade[3] = {10, 8, 5};
-const int tempo_novo_dino_por_dificuldade[3] = {8, 7, 5};
+const int max_vida_dino_por_dificuldade[3] = {2, 3, 4};
+const int max_misseis_por_dificuldade[3] = {15, 10, 8};
+const int tempo_novo_dino_por_dificuldade[3] = {15, 10, 5};
 
 int max_vida_dino;
 int max_misseis;
 int tempo_novo_dino;
+int dinos_vivos;
 bool fim_jogo = false;
 bool vitoria = false;
 
@@ -27,6 +29,7 @@ helicoptero_t helicoptero;
 deposito_t deposito;
 caminhao_t caminhao;
 dino_t dinos[MAX_DINOS];
+missel_t* lista_missel;
 
 void obter_dificuldade() {
   int dificuldade;
@@ -53,10 +56,47 @@ void verifica_colisao() {
   int i;
   for (i = 0; i < MAX_DINOS; i++) {
     if (!dinos[i].ativo) continue;
-    if (helicoptero.y == dinos[i].y && helicoptero.x == dinos[i].x) {
+    if ((helicoptero.y == dinos[i].y || helicoptero.y == dinos[i].y + 1) && helicoptero.x == dinos[i].x) {
       fim_jogo = true;
     }
   }
+}
+
+void verifica_acerto(missel_t* missel) {
+  int i;
+  for (i = 0; i < MAX_DINOS; i++) {
+    if (!dinos[i].ativo) continue;
+    if (missel->y == dinos[i].y && missel->x == dinos[i].x) {
+      missel->acertou = true;
+      dinos[i].vida--;
+      if (!dinos[i].vida) {
+        dinos[i].ativo = false;
+        dinos_vivos--;
+      }
+    }
+  }
+}
+
+void* mover_tiro(void* arg) {
+  missel_t* missel = (missel_t*) arg;
+  while (!missel->acertou && missel->x < LARGURA_JANELA - 1) {
+    missel->x++;
+    verifica_acerto(missel);
+    usleep(30000);
+  }
+  remover_missel_lista(missel, &lista_missel);
+  return NULL;
+}
+
+void atirar() {
+  if (helicoptero.misseis <= 0) return;
+  helicoptero.misseis--;
+  missel_t* missel = (missel_t*) malloc(sizeof(missel_t));
+  missel->id = rand();
+  missel->x = helicoptero.x;
+  missel->y = helicoptero.y;
+  adicionar_missel_lista(missel, &lista_missel);
+  pthread_create(&missel->thread, NULL, mover_tiro, missel);
 }
 
 void* mover_helicoptero(void* arg) {
@@ -67,7 +107,7 @@ void* mover_helicoptero(void* arg) {
       case 's': helicoptero.y++; break;
       case 'a': helicoptero.x--; break;
       case 'd': helicoptero.x++; break;
-      case ' ': if (helicoptero.misseis > 0) helicoptero.misseis--; break;
+      case ' ': atirar(); break;
       case 'q': fim_jogo = true; break;
     }
 
@@ -180,6 +220,7 @@ void* criar_dinos(void* arg) {
         dinos[i].ativo = true;
         dinos[i].indo_frente = !dinos[0].indo_frente;
         dinos[i].indo_cima = false;
+        dinos_vivos++;
         break;
       }
     }
@@ -194,7 +235,7 @@ void desenhar_janela() {
 }
 
 void desenhar_infos() {
-  mvwprintw(janela_jogo.win, 0, 1, " Mísseis: %d | Depósito: %d ", helicoptero.misseis, deposito.misseis);
+  mvwprintw(janela_jogo.win, 0, 1, " Mísseis: %d | Depósito: %d | Dinos vivos: %d ", helicoptero.misseis, deposito.misseis, dinos_vivos);
   mvwprintw(janela_jogo.win, 0, LARGURA_JANELA - 22, " Aperte 'Q' para sair ");
   mvprintw(janela_jogo.y + ALTURA_JANELA, janela_jogo.x + 1, "'WASD' para mover e 'Espaço' para atirar");
   mvprintw(janela_jogo.y + ALTURA_JANELA + 1, janela_jogo.x + 1, "H: Helicóptero | D: Dinossauro | C: Caminhão | B: Base");
@@ -202,6 +243,14 @@ void desenhar_infos() {
 
 void desenhar_helicoptero() {
   mvwprintw(janela_jogo.win, helicoptero.y, helicoptero.x, "H");
+}
+
+void desenhar_misseis() {
+  missel_t* missel = lista_missel;
+  while (missel != NULL) {
+    mvwprintw(janela_jogo.win, missel->y, missel->x, "-");
+    missel = missel->prox;
+  }
 }
 
 void desenhar_deposito() {
@@ -216,7 +265,9 @@ void desenhar_dinos() {
   int i;
   for (i = 0; i < MAX_DINOS; i++) {
     if (dinos[i].ativo) {
+      mvwprintw(janela_jogo.win, dinos[i].y - 1, dinos[i].x, "%d", dinos[i].vida);
       mvwprintw(janela_jogo.win, dinos[i].y, dinos[i].x, "D");
+      mvwprintw(janela_jogo.win, dinos[i].y + 1, dinos[i].x, "D");
     }
   }
 }
@@ -225,6 +276,7 @@ void desenhar_entidades() {
   desenhar_janela();
   desenhar_infos();
   desenhar_helicoptero();
+  desenhar_misseis();
   desenhar_deposito();
   desenhar_caminhao();
   desenhar_dinos();
@@ -248,14 +300,14 @@ void inicializar_entidades() {
   dinos[0].ativo = true;
   dinos[0].indo_frente = false;
   dinos[0].indo_cima = false;
+  dinos_vivos = 1;
 }
 
-void verificar_derrota() {
-  int i;
-  for (i = 0; i < MAX_DINOS; i++) {
-    if (!dinos[i].ativo) return;
+void verificar_status_jogo() {
+  if (!dinos_vivos || dinos_vivos == MAX_DINOS) {
+    vitoria = !dinos_vivos;
+    fim_jogo = true;
   }
-  fim_jogo = true;
 }
 
 void apresentar_mensagem_final() {
@@ -286,7 +338,7 @@ void jogo() {
     desenhar_entidades();
     refresh();
     wrefresh(janela_jogo.win);
-    verificar_derrota();
+    verificar_status_jogo();
     usleep(50000);
   }
 

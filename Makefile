@@ -1,10 +1,16 @@
 TARGET = jogo_dino
 CC = g++
-OBJ = jogo_dino.c
+OBJS = jogo_dino.o missel.o
 PARAMS = -lncurses -lpthread
 
-jogo: $(OBJ)
-	$(CC) $(OBJ) -o $(TARGET) $(PARAMS)
+jogo: $(OBJS)
+	$(CC) $(OBJS) -o $(TARGET) $(PARAMS)
+
+jogo_dino.o: src/jogo_dino.c src/jogo_dino.h src/missel.h
+	$(CC) -c src/jogo_dino.c $(PARAMS)
+
+missel.o: src/missel.c src/missel.h
+	$(CC) -c src/missel.c $(PARAMS)
 
 clean:
-	rm $(TARGET)
+	rm $(TARGET) $(OBJS)
