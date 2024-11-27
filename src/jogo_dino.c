@@ -82,7 +82,7 @@ void* mover_tiro(void* arg) {
   while (!missel->acertou && missel->x < LARGURA_JANELA - 1) {
     missel->x++;
     verifica_acerto(missel);
-    usleep(30000);
+    usleep(20000);
   }
   remover_missel_lista(missel, &lista_missel);
   return NULL;
@@ -134,7 +134,7 @@ void* recarregar_helicoptero(void* arg) {
     ) {
       helicoptero.misseis++;
       deposito.misseis--;
-      usleep(600000);
+      usleep(400000);
     }
     pthread_mutex_unlock(&mutex_deposito);
     usleep(30000);
@@ -147,7 +147,7 @@ void recarregar_deposito() {
   pthread_mutex_lock(&mutex_deposito);
   while (deposito.misseis < max_misseis) {
     deposito.misseis++;
-    usleep(600000);
+    usleep(400000);
   }
   pthread_mutex_unlock(&mutex_deposito);
 }
