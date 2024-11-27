@@ -342,6 +342,12 @@ void jogo() {
     usleep(50000);
   }
 
+  pthread_cancel(th_helicoptero);
+  pthread_cancel(th_recarga_helicoptero);
+  pthread_cancel(th_caminhao);
+  pthread_cancel(th_dinos);
+  pthread_cancel(th_cria_dinos);
+
   apresentar_mensagem_final();
 }
 

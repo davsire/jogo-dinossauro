@@ -18,7 +18,6 @@ void remover_missel_lista(missel_t* missel, missel_t** lista_missel) {
 
   if (atual->id == missel->id) {
     *lista_missel = atual->prox;
-    free(atual);
     return;
   }
 
@@ -29,6 +28,5 @@ void remover_missel_lista(missel_t* missel, missel_t** lista_missel) {
 
   if (atual != NULL) {
     anterior->prox = atual->prox;
-    free(atual);
   }
 }
