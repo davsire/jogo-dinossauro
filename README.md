@@ -35,6 +35,7 @@ Dinossauros estão invadindo a Terra e seu dever é abatê-los usando um helicó
 Certifique-se de que seu ambiente atenda aos requisitos abaixo:
 
 - **Compilador C**: G++ ou outro compatível.
+- **Bibliotecas**: Ncurses e Pthread
 - **Sistema Operacional**: Linux, macOS ou Windows com terminal.
 
 ---
