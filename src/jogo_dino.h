@@ -32,6 +32,4 @@ typedef struct Dino {
   bool indo_cima;
 } dino_t;
 
-void funcao();
-
 #endif
