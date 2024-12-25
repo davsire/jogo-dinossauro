@@ -11,6 +11,12 @@
 #define ALTURA_JANELA 40
 #define LARGURA_JANELA 120
 
+#define COR_HELICOPTERO 1
+#define COR_DINO 2
+#define COR_CAMINHAO 3
+#define COR_DEPOSITO 4
+#define COR_MISSEL 5
+
 const int max_vida_dino_por_dificuldade[3] = {2, 3, 4};
 const int max_misseis_por_dificuldade[3] = {15, 10, 8};
 const int tempo_novo_dino_por_dificuldade[3] = {15, 10, 5};
@@ -242,23 +248,31 @@ void desenhar_infos() {
 }
 
 void desenhar_helicoptero() {
+  wattron(janela_jogo.win, COLOR_PAIR(COR_HELICOPTERO));
   mvwprintw(janela_jogo.win, helicoptero.y, helicoptero.x, "H");
+  wattroff(janela_jogo.win, COLOR_PAIR(COR_HELICOPTERO));
 }
 
 void desenhar_misseis() {
+  wattron(janela_jogo.win, COLOR_PAIR(COR_MISSEL));
   missel_t* missel = lista_missel;
   while (missel != NULL) {
     mvwprintw(janela_jogo.win, missel->y, missel->x, "-");
     missel = missel->prox;
   }
+  wattroff(janela_jogo.win, COLOR_PAIR(COR_MISSEL));
 }
 
 void desenhar_deposito() {
+  wattron(janela_jogo.win, COLOR_PAIR(COR_DEPOSITO));
   mvwprintw(janela_jogo.win, deposito.y, deposito.x, "BBBB");
+  wattroff(janela_jogo.win, COLOR_PAIR(COR_DEPOSITO));
 }
 
 void desenhar_caminhao() {
+  wattron(janela_jogo.win, COLOR_PAIR(COR_CAMINHAO));
   mvwprintw(janela_jogo.win, caminhao.y, caminhao.x, "CC");
+  wattroff(janela_jogo.win, COLOR_PAIR(COR_CAMINHAO));
 }
 
 void desenhar_dinos() {
@@ -266,8 +280,10 @@ void desenhar_dinos() {
   for (i = 0; i < MAX_DINOS; i++) {
     if (dinos[i].ativo) {
       mvwprintw(janela_jogo.win, dinos[i].y - 1, dinos[i].x, "%d", dinos[i].vida);
+      wattron(janela_jogo.win, COLOR_PAIR(COR_DINO));
       mvwprintw(janela_jogo.win, dinos[i].y, dinos[i].x, "D");
       mvwprintw(janela_jogo.win, dinos[i].y + 1, dinos[i].x, "D");
+      wattroff(janela_jogo.win, COLOR_PAIR(COR_DINO));
     }
   }
 }
@@ -351,6 +367,15 @@ void jogo() {
   apresentar_mensagem_final();
 }
 
+void inicializar_cores() {
+  start_color();
+  init_pair(COR_HELICOPTERO, COLOR_CYAN, COLOR_BLACK);
+  init_pair(COR_DINO, COLOR_GREEN, COLOR_BLACK);
+  init_pair(COR_CAMINHAO, COLOR_YELLOW, COLOR_BLACK);
+  init_pair(COR_DEPOSITO, COLOR_MAGENTA, COLOR_BLACK);
+  init_pair(COR_MISSEL, COLOR_RED, COLOR_BLACK);
+}
+
 int main() {
   obter_dificuldade();
 
@@ -360,6 +385,7 @@ int main() {
   curs_set(0);
   keypad(stdscr, TRUE);
   nodelay(stdscr, TRUE);
+  inicializar_cores();
 
   jogo();
 
